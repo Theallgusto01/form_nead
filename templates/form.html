@@ -1,0 +1,136 @@
+{%extends 'base.html'%}
+{%block content%}
+
+        <div class="mt-5">
+            <h1 class="text-center">Cadastro de Trilha</h1>
+            
+            <form action="/submit" method="POST">
+
+                <div id="formulario" class="mb-3 d-flex flex-column justify-content-center ">
+                    <div class="d-flex">
+                        <div class="flex-grow-1 p-3">
+                            <label for="curso" class="form-label">Curso</label>
+                            <select name="curso" id="curso" class="form-select">
+                            <option value="">Selecione o Curso</option>
+                            {%for d in cursos%}
+                            <option>{{d}}</option>
+                            {%endfor%}
+                            </select>
+                        </div>
+        
+                        <div class="mb-3 p-3">
+                            <label for="modalidade" class="form-label">Tipo</label>
+                            <select name="tipo" id="tipo" class="form-select">
+                            <option value="none">Selecione o Tipo</option>
+                            <option value="Tradicional">Tradicional</option>
+                            <option value="ABP">ABP</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3 p-3">
+                        <label for="disciplina" class="form-label">Disciplina</label>
+                        <select id="disciplina" name="disciplina" disabled class="form-select">
+                        <option value="" disabled selected>Selecione uma disciplina</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 p-3 conteudo">
+                        <div>
+                            <h5 class="p-5">Trilha de Aprendizagem</h5>
+                        </div>
+                        
+                        <div id="conteudos">
+                            
+                        </div>
+
+                    </div>
+                  
+                    <div>
+                        <button type="button" id="adicionar_essencial" class="btn btn-primary">+ Conteúdo Essencial</button>
+                        <button type="button" id="adicionar_complementar" class="btn btn-secondary">+ Conteúdo Complementar</button>
+                    </div>
+                
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Enviar</button> 
+            </form>
+        </div>
+
+
+<script>
+    $(document).ready(function() {
+        
+        $('#curso').change(function() {
+            const curso = $(this).val();
+            $(tipo).val('none')
+        });
+
+        $('#tipo').change(function() {
+            const tipo = $('#tipo').val();
+            const curso = $('#curso').val(); 
+
+            console.log("Tipo selecionado:", tipo);  
+
+            $('#disciplina').prop('disabled', true).html('<option value="" disabled selected>Carregando...</option>');
+
+            $.ajax({
+                url: `/get_disciplina/${encodeURIComponent(curso)}/${encodeURIComponent(tipo)}`,
+                type: 'GET',
+                contentType: 'application/json',    
+                success: function(disciplinas) {
+                    let options = '<option value="" disabled selected>Selecione uma disciplina</option>';
+                    disciplinas.forEach(function(disciplina) {
+                        options += `<option value="${disciplina}">${disciplina}</option>`;
+                    });
+                    $('#disciplina').html(options).prop('disabled', false);
+                },
+                error: function() {
+                    alert('Erro ao carregar disciplinas.');
+                }
+            });
+        });
+    });
+
+    let contadorConteudoEssencial = 1;
+    let contadorConteudoComplementar = 1;
+    let contadorFile = 1;
+
+    document.getElementById('adicionar_essencial').addEventListener("click", function(){
+
+        const novadiv = document.createElement("div");
+        
+        novadiv.innerHTML =`<div id=\"conteudo_essencial_${contadorConteudoEssencial}\">\
+        <label for=\"conteudo_essencial_${contadorConteudoEssencial}\" class=\"form-label\">${contadorConteudoEssencial}. Conteúdo Essencial  (Cod. Sagah)</label>\
+        <input type=\"number\" name=\"conteudo_essencial_${contadorConteudoEssencial}\" id=\"conteudo_essencial_${contadorConteudoEssencial}\" class=\"form-control\">\
+        </div>`
+
+        novadiv.classList.add('conteudo');
+        novadiv.classList.add('mb-5');
+
+        document.getElementById("conteudos").appendChild(novadiv);
+        contadorConteudoEssencial++;
+    })
+
+    document.getElementById('adicionar_complementar').addEventListener("click", function(){
+
+    const novadiv = document.createElement("div");
+
+    novadiv.innerHTML = `
+    <h8>${contadorConteudoComplementar}. Conteúdo Complementar </h8>
+    <div id="conteudo_complementar_${contadorConteudoComplementar}">
+        <label for="conteudo_complementar__title${contadorConteudoComplementar}" class="form-label">Título</label>
+        <input type="text" name="conteudo_complementar_title_${contadorConteudoComplementar}" id="conteudo_complementar__titulo${contadorConteudoComplementar}" class="form-control">
+        <label for="conteudo_complementar_url_${contadorConteudoComplementar}" class="form-label">Link</label>
+        <input type="text" name="conteudo_complementar_url_${contadorConteudoComplementar}" id="conteudo_complementar_url_${contadorConteudoComplementar}" class="form-control">
+    </div>`;
+
+    novadiv.classList.add('conteudo');
+    novadiv.classList.add('mb-5');
+    document.getElementById("conteudos").appendChild(novadiv);
+    contadorConteudoComplementar++;
+    })
+    
+</script>
+
+{%endblock%}
